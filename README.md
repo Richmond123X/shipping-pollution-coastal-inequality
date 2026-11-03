@@ -19,11 +19,12 @@ This repository archives the research code available in the project workspace on
 | `policy_clustering_v12_formal/` | Coastal regionalization with the exact-OR Max-p constraint | Requires spatial inputs and risk panel |
 | `policy_simulation_v12_formal/` | Formal S1-S7 policy simulations and figures | AIS computation year 2024; risk-selection anchor 2025 |
 | `figure_scripts/` | Final risk maps and transition diagrams | Requires archived panels and map inputs |
+| `policy/` | Earlier policy workflow retained for code provenance | Superseded by the formal V12 workflow |
 | `release_tools/` | Portable checks of the archived source data | Requires the separately downloaded Figshare source-data package |
 
 ## Reading and running the archive
 
-Python dependencies are listed in `requirements-archive.txt`; these are dependency names, not a claimed historical lockfile. The R workflow uses `fixest`, `data.table` and the additional packages named in its scripts. Read each component README before running. Original scripts retain their historical Windows paths and configuration; update those paths for the execution machine. Some entry points support `TRANSFER_JUSTICE_ROOT`, `V10_OUT` and `V10_MONTHLY_ROOT` environment variables.
+Python dependencies are listed in `requirements-archive.txt`; these are dependency names, not a claimed historical lockfile. The R workflow uses `fixest`, `data.table`, `haven` and the additional packages named in its scripts. Read each component README before running. Original scripts retain their historical Windows paths and configuration; update those paths for the execution machine. Some entry points support `TRANSFER_JUSTICE_ROOT`, `V10_OUT` and `V10_MONTHLY_ROOT` environment variables.
 
 A portable verification of the Figshare source data can be run independently:
 

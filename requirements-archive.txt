@@ -21,3 +21,6 @@ torch
 requests
 openpyxl
 searoute
+Pillow
+tqdm
+Unidecode
