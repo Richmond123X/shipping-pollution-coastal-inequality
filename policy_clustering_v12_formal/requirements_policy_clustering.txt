@@ -1,0 +1,9 @@
+geopandas==1.1.4
+matplotlib==3.11.1
+networkx==3.6.1
+numpy==2.4.6
+pandas==3.0.5
+pyogrio==0.13.0
+scikit-learn==1.9.0
+scipy==1.17.1
+shapely==2.1.2

@@ -1,0 +1,136 @@
+# =====================================================================
+# 船舶排放向脆弱地区转移研究 —— 全局配置
+# 所有脚本通过本文件取路径与参数；命令行参数可覆盖
+# 跨机器：绝对路径若在当前机器不存在，config_loader 会自动尝试
+#   项目根重定位 / 用户目录重定位(如 86176→HP) / 换盘符，无需手改本文件
+# =====================================================================
+
+paths:
+  # --- 自有数据 ---
+  port_xlsx: "E:/transfer justice/data/港口/port_data_clean.xlsx"
+  world_shp: "C:/Users/86176/Desktop/Global_ECA/Global_shp/World.shp"
+  eca_shp_dir: "C:/Users/86176/Desktop/Global_ECA/Global_shp"
+
+  # --- AIS 与 STEAM 辅助文件（迁移机路径，本机不存在，仅占位）---
+  ais_db_dir: "D:/SQL_AIS_SingleShip"
+  laf_xlsx: "C:/Users/86176/Desktop/Ship Emission/Ship_File/Low load adjustment factor.xlsx"
+  eca_base: "C:/Users/86176/Desktop/Ship Emission"
+
+  # --- 外部协变量数据 ---
+  doctor_xlsx: "E:/transfer justice/data/医生数/doctor.xlsx"
+  bed_xlsx: "E:/transfer justice/data/床位数/bed.xlsx"
+  pv_csv: "E:/transfer justice/data/地缘政治风险/API_PV.EST_DS2_en_csv_v2_196954.csv"
+  wgi_file: "E:/transfer justice/data/治理质量/wgi_full.xlsx"   # build_ac4 下载后落盘
+  kummu_gdp_tif: "E:/transfer justice/data/GDP/rast_adm2_gdp_perCapita_1990_2022.tif"
+  weo_csv: "E:/transfer justice/data/GDP/dataset_2026-06-11T05_41_09.242691389Z_DEFAULT_INTEGRATION_IMF.RES_WEO_9.0.0.csv"
+  pop_dir: "E:/transfer justice/data/人口"
+  pop_age_dir: "E:/transfer justice/data/人口结构"
+
+  # --- Port2City 输出（被 Part A-2 / B / C 引用）---
+  coastal_ports_csv: "E:/transfer justice/port2city/outputs/coastal_ports.csv"
+  coastal_cities_gpkg: "E:/transfer justice/port2city/outputs/coastal_cities.gpkg"
+  city_catchments_gpkg: "E:/transfer justice/port2city/outputs/city_catchments_30km.gpkg"
+  port_city_mapping_csv: "E:/transfer justice/port2city/outputs/port_city_mapping.csv"
+  llm_city_cache: "E:/transfer justice/port2city/llm_city_cache.json"
+
+  # --- 协变量输出 ---
+  covariates_dir: "E:/transfer justice/covariates/outputs"
+
+  # --- 排放网络输出（迁移机上运行时生成）---
+  results_root: "E:/transfer justice/results_monthly"
+
+# =====================================================================
+port2city:
+  # L1 批次大小（港/批）
+  l1_batch_size: 40
+  # 空间验证：候选面到港口点的最大边界距离（km）
+  spatial_tolerance_km: 25.0
+  # 面积带宽（km²）：目标量级 / 过碎下限（上浮一级）/ 过粗上限（下钻一级）
+  area_target_km2: 10000.0
+  area_min_km2: 500.0
+  area_max_km2: 80000.0
+  # 集水区缓冲宽度（km）；50/100 为敏感性规格
+  catchment_buffer_km: 30.0
+  # 等积投影
+  equal_area_crs: "EPSG:6933"
+  # 组合节点登记表：成员城市（L2 选定层级的面）dissolve 为单节点；成员必须同国
+  node_merges:
+    - node: "Ningbo-Zhoushan"
+      members: ["Ningbo", "Zhoushan"]
+      country: "China"
+
+# =====================================================================
+emission_network:
+  # 月度输出（原代码为季度）
+  time_scale: "monthly"
+  # 4 类主流商船白名单（库内 Ship_Type 取值，实施时核对变体）
+  ship_types: ["Container", "General Cargo", "Oil Tanker", "Bulk Carrier"]
+  # 输出全部 8 种污染物（主分析读 SO2/PM/NOx）
+  pollutants: ["SO2", "PM", "CO2", "NOx", "CO", "CH4", "N2O", "NMVOC"]
+  main_pollutants: ["SO2", "PM", "NOx"]
+  # 综合污染物健康加权 PM:SO2:NOx = 5:2:1
+  pollutant_weights: {PM: 5.0, SO2: 2.0, NOx: 1.0}
+  # STEAM 港口归属参数（与原代码一致）
+  berth_radius_km: 10.0
+  berth_detect_km: 5.0
+  berth_gap_tolerance_sec: 600.0
+  canal_km: 10.0
+  max_inport_hours: 504
+  # 是否同时保留港口级输出（SI 用）
+  keep_port_level_outputs: true
+  # 周度港口输出(绿色韧性研究): port_visits_*(逐次挂靠明细,含到/离港时刻)
+  # + port_emissions_weekly_*(港口×ISO周×工况;含锚地归属扩展)
+  # 本研究(转移正义)不需要周度产物,默认关闭;绿色韧性重跑时改回 true
+  weekly_port_outputs: false
+  # 锚地归属半径 km: 未落入挂靠区间的 Anchored 点距最近港≤该值时归入该港
+  anchor_attribution_km: 25.0
+  n_cores: 4
+
+# =====================================================================
+policy:
+  # 研究 4:高风险区域 SECA/NECA 政策模拟(方案 v6 第七章)
+  # enabled=true 且 zones_gpkg 存在时,排放主程序在同一遍轨迹处理中
+  # 额外输出情景 delta(city_policy_delta_* / policy_delta_totals_*)
+  enabled: false
+  # 研究 3 SPRI 得分表(需含 node_id,SPRI 两列;研究 3 产出后填实际路径)
+  spri_csv: "E:/transfer justice/results_spri/spri_2025.csv"
+  # 高风险节点比例(SPRI 降序前 20%;参数化,不硬编码)
+  top_pct: 0.20
+  # 主分析实施单元数: 按国内高风险节点数排序取前 N 国,其余进 SI
+  top_n_countries: 10
+  # 区域经济体联合情景: 名称 -> iso3(GID_0) 列表;默认空
+  # 例: blocs: { EU: [DEU, FRA, ITA, ESP, NLD, BEL, ...] }
+  blocs: {}
+  # 政策区几何: 领海 12 海里(22.224 km),海岸线向海缓冲、扣除陆地
+  territorial_nm: 12.0
+  # 简化容差(米,加速国家面缓冲;12 海里带不需要米级精度)
+  simplify_m: 250.0
+  # 情景参数
+  seca_sulfur: 0.001        # SECA 0.1% 硫上限
+  neca_build_year: 2016     # NECA Tier III 约束的最早建造年
+  # 评估年(用真实 AIS 重算的年份)
+  eval_year: 2025
+  # 产物路径
+  zones_gpkg: "E:/transfer justice/policy/outputs/candidate_policy_zones.gpkg"
+  trigger_nodes_csv: "E:/transfer justice/policy/outputs/policy_trigger_nodes.csv"
+  eval_output_dir: "E:/transfer justice/policy/outputs/evaluation"
+
+# =====================================================================
+gnn:
+  input_len: 12          # 输入历史月数
+  horizon: 12            # 预测视域月数
+  hidden_dim: 64
+  num_layers: 2
+  dropout: 0.3
+  lr: 0.001
+  weight_decay: 1.0e-5
+  batch_size: 32
+  max_epochs: 200
+  early_stop_patience: 20
+  lr_plateau_patience: 10
+  mc_dropout_samples: 100
+  # 数据划分（月份闭区间）
+  train_range: ["2019-01", "2024-12"]
+  val_range: ["2025-01", "2025-06"]
+  test_range: ["2025-07", "2025-12"]
+  predict_range: ["2026-01", "2027-12"]
